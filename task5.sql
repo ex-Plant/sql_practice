@@ -22,7 +22,7 @@ city, category, unique_customers, total_orders
 */
 
 # Create tables
-    CREATE TABLE cities (
+CREATE TABLE cities (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL
 );
