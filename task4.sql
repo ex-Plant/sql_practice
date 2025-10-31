@@ -161,13 +161,10 @@ AVG(col) OVER (…)	Running average	Moving average
 
 Key idea
 
-
 Unlike aggregates (SUM, COUNT), window functions don’t collapse rows — they add context to each row.
 
 Example
-
 	LAG(total_sales) OVER (ORDER BY month)
-
 → adds a column with the previous month’s total alongside the current month.
 ---
 

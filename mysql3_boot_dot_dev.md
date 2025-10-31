@@ -8,7 +8,7 @@ https://www.boot.dev
 - *Structured Query Language*, or SQL, is the primary programming language used to manage and interact with relational 
 databases. SQL can perform various operations such as creating, updating, reading, and deleting records within a database.
 - Database: An organized collection of data, stored electronically in a structured format for efficient retrieval and manipulation.
-- Although many different databases use the SQL language, most of them will have their own dialect.
+- Although many different databases use the SQL language, most of them will have their own dialect
 - a NoSQL database is a database that does not use SQL (Structured Query Language). Each NoSQL typically has its own way of writing and executing queries
 - NoSQL databases are usually non-relational, SQL databases are usually relational
 - SQL databases usually have a defined schema, NoSQL databases usually have dynamic schema.
@@ -1171,12 +1171,91 @@ Then you can use this in a join
 ```
 RESULT = 2023-01-05
 
-# When you use GROUP BY, the result is already unique per group,
+# When you use GROUP BY, the result is already unique per group
 This will extract a month than group it by it and give back the sum
+
+```sql
+    SELECT
+        substr(ORDER_DATE, 1, 7) AS month,
+        sum(amount_cents) as total_revenue_cents
+        FROM ORDERS
+        group by month
 ```
-SELECT
-substr(ORDER_DATE, 1, 7) AS month,
-sum(amount_cents) as total_revenue_cents
-FROM ORDERS
-group by month
+
+# CTE
+Common Table Expression is a temporary result of some select existing only for the duration of the query, defined 
+using *WITH* word.
+SQL first runs the query inside the WITH (...) block.
+That result can then be referenced like a table in the main query (or in other CTEs that follow)
+Store this intermediate result, give it a name, then build the final query using that name.
+
+```sql
+    -- THIS IS A CTE
+    WITH daily_totals AS (
+        SELECT 
+            order_date AS sale_date,
+            SUM(amount) AS daily_revenue
+            FROM orders
+            GROUP BY order_date
+            ORDER BY order_date ASC
+    )
+
+    SELECT * FROM daily_totals
+```
+
+# Window functions + OVER 
+The OVER keyword is what turns a normal aggregate or analytic expression into a window function.
+OVER tells SQL “don’t collapse rows — instead, apply this calculation across a defined window of rows.”
+
+Used to perform calculations across a set of rows that are related to the current row, without collapsing data into 
+groups like GROUP BY does.
+
+
+❗ GROUP BY 0 collapses mutliple rows into one
+❗ WINDOW FUNCTIONS keeps all rows and adds extra calculations accross them
+
+
+# We need to calculate running total 
+```sql
+    SELECT
+      sale_date,
+      daily_revenue,
+      -- THIS IS A WINDOW FUNCTION ❗
+      --SUM(daily_revenue) is the same aggregate as before — but since it’s inside OVER(), it doesn’t collapse rows.
+      SUM(daily_revenue) OVER (
+        ORDER BY sale_date
+      -- defines the window frame: all rows from the start up to the current one.
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+      ) AS running_total
+    
+    FROM daily_totals
+    ORDER BY sale_date;
+```
+
+# ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+- from the first row to the current row
+- used for running totals 
+
+# ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING
+- all rows in the partition
+- Used when you want a total, average, or rank over the entire set, repeated for each row.
+
+# ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING
+- from the current to the end 
+
+# ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING
+- you can specify exactly how many rows before and after the current one
+
+
+# LAG 
+- day_over_day_change — the difference between the current day’s daily_revenue and the previous qualifying day’s daily_revenue
+```sql
+    SELECT
+      sale_date,
+      daily_revenue,
+      -- LAG WINDOW FUNCTION ❗
+      daily_revenue - LAG(daily_revenue)
+      OVER (ORDER BY sale_date) as day_over_day_change
+    FROM daily_totals
+    ORDER BY sale_date;
 ```
