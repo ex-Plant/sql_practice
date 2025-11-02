@@ -97,7 +97,6 @@ WITH june_totals AS (
         GROUP BY customer_id
 )
 
-
 SELECT
     customer_name,
     june_totals.country_code,
