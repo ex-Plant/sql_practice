@@ -1208,7 +1208,8 @@ We can create as many as we want
     )
 ```
 
-Then you can use this in a join
+
+ you can use this in a join
 ```sql
     JOIN active_users
     ON active_users.user_id = users.id
@@ -1311,3 +1312,11 @@ groups like GROUP BY does.
     FROM daily_totals
     ORDER BY sale_date;
 ```
+
+# CONDITIONALLY ADDING A COLUMN - CONDITIONAL AGGREGATION
+Case runs per fow.
+For every row we check condition inside the case and we yield 1 or 0
+```sql
+    CASE WHEN condition THEN 1 ELSE 0 END
+```
+The sum aggregates 1's and '0s and the final SUM gives you the count of rows where the condition was true. 
