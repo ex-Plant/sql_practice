@@ -1320,3 +1320,20 @@ For every row we check condition inside the case and we yield 1 or 0
     CASE WHEN condition THEN 1 ELSE 0 END
 ```
 The sum aggregates 1's and '0s and the final SUM gives you the count of rows where the condition was true. 
+
+```sql
+  SELECT
+    cities.name as city, cities.country,
+    COUNT(DISTINCT(drivers.id)) as drivers_in_city,
+    SUM(CASE WHEN trips.status = 'completed' THEN 1 ELSE 0 END ) as completed_trips,
+    CASE WHEN SUM(CASE WHEN trips.status = "completed" THEN 1 ELSE 0 END) >= 3
+      THEN 'busy' ELSE 'normal' END AS load_label
+    FROM cities
+  JOIN drivers ON drivers.city_id = cities.id
+  JOIN trips ON trips.driver_id = drivers.id
+  GROUP BY cities.name
+  
+  HAVING COUNT(DISTINCT drivers.id) >= 2
+  AND SUM(CASE WHEN trips.status = 'completed' THEN 1 ELSE 0 END) >= 1
+  ORDER BY completed_trips DESC, cities.name ASC
+```
